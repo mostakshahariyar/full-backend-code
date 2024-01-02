@@ -15,5 +15,8 @@
     "express js"
   ],
   "author": "mostak shahariyar",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "prettier": "^3.1.1"
+  }
 }
