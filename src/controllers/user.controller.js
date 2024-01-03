@@ -21,21 +21,23 @@ const registerUser = asyncHandler(async (req, res) => {
         ) {
                 throw new ApiError(400, "All field are required")
         }
-        const existUser = User.findOne({
+        const existUser = await User.findOne({
                 $or: [{ email }, { userName }]
         })
 
         if (existUser) {
                 throw new ApiError(409, "Email already logged in");
         }
-        const avatarLocalPath = req.files?.avatar[0]?.path;
-        const coverImageLocalPath = req.files?.CoverImage[0]?.path;
+        const avatarLocalPath = await req.files?.avatar[0]?.path;
+        console.log(avatarLocalPath)
+        const coverImageLocalPath = await req.files?.coverImage[0]?.path;
         if (!avatarLocalPath) {
                 throw new ApiError(400, "Missing avatar");
         }
 
         const avatar = await uploadOnCloudinary(avatarLocalPath);
         const coverImage = await uploadOnCloudinary(coverImageLocalPath);
+        console.log(coverImage, avatar)
         if (!avatar) {
                 throw new ApiError(400, "Missing Avatar")
         }
