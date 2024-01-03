@@ -15,7 +15,6 @@ const registerUser = asyncHandler(async (req, res) => {
         // remove password and refresh token field from response
         // check for user creation -> if -> true -> return user
         const { fullName, email, password, userName } = req.body;
-        console.log("email: " + email)
         if (
                 [fullName, email, password, userName].some((field) => field?.trim() === "")
         ) {
@@ -29,15 +28,17 @@ const registerUser = asyncHandler(async (req, res) => {
                 throw new ApiError(409, "Email already logged in");
         }
         const avatarLocalPath = await req.files?.avatar[0]?.path;
-        console.log(avatarLocalPath)
-        const coverImageLocalPath = await req.files?.coverImage[0]?.path;
+        // const coverImageLocalPath = await req.files?.coverImage[0]?.path;
+        let coverImageLocalPath;
+        if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+                coverImageLocalPath = req.files.coverImage[0].path;
+        }
         if (!avatarLocalPath) {
                 throw new ApiError(400, "Missing avatar");
         }
 
         const avatar = await uploadOnCloudinary(avatarLocalPath);
         const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-        console.log(coverImage, avatar)
         if (!avatar) {
                 throw new ApiError(400, "Missing Avatar")
         }

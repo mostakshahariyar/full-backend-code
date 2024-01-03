@@ -48,16 +48,16 @@ const userSchema = new Schema(
                 }
         }
         , { timestamps: true });
-// user inbuild middleware
+// user in build middleware
 userSchema.pre("save", async function (next) {
-        if (!this.isModified(this.password)) return next(); //check password modified or not
+        if (!this.isModified("password")) return next() //check password modified or not
 
-        this.password = await bcrypt.hash(this.password, 8)
-        next();
+        this.password = await bcrypt.hash(this.password, 10)
+        next()
 })
 // plugins custom methods
 userSchema.methods.isPasswordCorrect = async function (password) {
-        return await bcrypt.compare(this.password, password)
+        return await bcrypt.compare(password, this.password)
 }
 userSchema.methods.generateAccessToken = async function () {
         return jwt.sign(
