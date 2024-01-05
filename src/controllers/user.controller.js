@@ -252,6 +252,56 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
                 ))
 })
 
+// cover update request
+const coverUpdate = asyncHandler(async (req, res) => {
+        const coverLocalPath = req.file?.path;
+
+        if (!coverLocalPathLocalPath) {
+                throw new ApiError(400, "Cover image not found")
+        }
+        const cover = await uploadOnCloudinary(coverLocalPath);
+
+        if (!cover.url) {
+                throw new ApiError(400, "Error uploading cover")
+        }
+        const user = await User.findByIdAndUpdate(req.user?._id,
+                {
+                        $set: {
+                                coverImage: cover.url
+                        }
+                },
+                { new: true }).select("-password");
+        return res.status(200)
+                .json(new ApiResponse(200,
+                        user,
+                        "cover image updated successfully"))
+
+})
+const avatarUpdate = asyncHandler(async (req, res) => {
+        const avatarLocalPath = req.file?.path;
+
+        if (!avatarLocalPath) {
+                throw new ApiError(400, "Avatar not found")
+        }
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+        if (!avatar.url) {
+                throw new ApiError(400, "Error uploading avatar")
+        }
+        const user = await User.findByIdAndUpdate(req.user?._id,
+                {
+                        $set: {
+                                avatar: avatar.url
+                        }
+                },
+                { new: true }).select("-password");
+        return res.status(200)
+                .json(new ApiResponse(200,
+                        user,
+                        "avatar image updated successfully"))
+
+})
+
 export {
         registerUser,
         loginUser,
@@ -259,5 +309,7 @@ export {
         refreshAccessToken,
         currentPasswordChange,
         currentUser,
-        updateAccountDetails
+        updateAccountDetails,
+        avatarUpdate,
+        coverUpdate
 };
