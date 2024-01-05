@@ -9,13 +9,12 @@ import jwt from "jsonwebtoken";
 const generateAccessTokenAndRefreshToken = async (userId) => {
         try {
                 const user = await User.findById(userId);
-                // console.log(user)
+
                 const accessToken = user.generateAccessToken();
                 const refreshToken = user.generateRefreshToken();
-                // console.log("accessToken", accessToken)
-                // console.log("refreshToken", refreshToken)
+
                 user.refreshToken = refreshToken;
-                console.log(user)
+
                 await user.save({ validateBeforeSave: false });
 
                 return { accessToken, refreshToken }
@@ -103,7 +102,6 @@ const loginUser = asyncHandler(async (req, res) => {
         const user = await User.findOne({
                 $or: [{ userName }, { email }]              //find email or username 
         })
-        console.log(user)
         if (!user) {
                 throw new ApiError(400, "User does not exist");
         }
@@ -120,12 +118,11 @@ const loginUser = asyncHandler(async (req, res) => {
         // cookies 
         const option = {
                 httpOnly: true,
-                // secure: true,
+                secure: true,
         }
         return res.status(200)
-                .cookie("axiken", accessToken, option)
+                .cookie("accessToken", accessToken, option)
                 .cookie("refreshToken", refreshToken, option)
-                // .set("Set-Cookie", `accessToken=${accessToken}`)
                 .json(
                         new ApiResponse(
                                 200,
@@ -148,8 +145,6 @@ const logOutUser = asyncHandler(async (req, res) => {
         }, {
                 new: true,
         })
-
-        console.log(logoutUser)
 
         const option = {
                 httpOnly: true,
