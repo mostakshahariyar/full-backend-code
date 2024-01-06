@@ -5,7 +5,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 
-
+// token generator
 const generateAccessTokenAndRefreshToken = async (userId) => {
         try {
                 const user = await User.findById(userId);
@@ -24,6 +24,8 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
         }
 }
 
+
+// registrer user
 const registerUser = asyncHandler(async (req, res) => {
         // get user details from frontend
         // validation - fill all full fields
@@ -86,6 +88,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 })
 
+// login user
 const loginUser = asyncHandler(async (req, res) => {
         // req body
         // username or email
@@ -136,6 +139,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
 })
 
+
+// loggout user
 const logOutUser = asyncHandler(async (req, res) => {
         // clean cookies
         const logoutUser = await User.findByIdAndUpdate(req.user._id, {
@@ -159,7 +164,7 @@ const logOutUser = asyncHandler(async (req, res) => {
 })
 
 
-
+// add refresh token 
 const refreshAccessToken = asyncHandler(async (req, res) => {
         const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
@@ -234,7 +239,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
         if (!(fullName || email)) {
                 throw new ApiError(400, "full Name and eamil empty");
         }
-        const user = User.findByIdAndUpdate(
+        const user = await User.findByIdAndUpdate(
                 req.user?._id,
                 {
                         $set: {
@@ -277,6 +282,9 @@ const coverUpdate = asyncHandler(async (req, res) => {
                         "cover image updated successfully"))
 
 })
+
+
+// avata image update
 const avatarUpdate = asyncHandler(async (req, res) => {
         const avatarLocalPath = req.file?.path;
 
@@ -299,6 +307,78 @@ const avatarUpdate = asyncHandler(async (req, res) => {
                 .json(new ApiResponse(200,
                         user,
                         "avatar image updated successfully"))
+
+})
+
+// user channel profile update => useing aggregrations pipeline to update channel profile
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+        const { userName } = req.params;
+        if (!userName) {
+                throw new ApiError(400, "User not found");
+        }
+        const channel = await User.aggregate([
+                {
+                        $match: {
+                                userName: userName?.toLowerCase()
+                        }
+                },
+                {
+                        $lookup: {
+                                from: "subscriptions",
+                                localField: "_id",
+                                foreignField: "channel",
+                                as: "subscribers"
+                        }
+                },
+                {
+                        $lookup: {
+                                from: "subscriptions",
+                                localField: "_id",
+                                foreignField: "subscriber",
+                                as: "subscribedTo"
+                        }
+                },
+                {
+                        $addFields: {
+                                subscribersCount: {
+                                        $size: "$subscribers"
+                                },
+                                channelsSubscribedToCount: {
+                                        $size: "$subscribedTo"
+                                },
+                                isSubscribed: {
+                                        $cond: {
+                                                if: { $in: [req.user?._id, "$subscribers.subscriber"] },
+                                                then: true,
+                                                else: false
+                                        }
+                                }
+                        }
+                },
+                {
+                        $project: {
+                                fullName: 1,
+                                userName: 1,
+                                email: 1,
+                                subscribersCount: 1,
+                                channelsSubscribedToCount: 1,
+                                isSubscribed: 1,
+                                avatar: 1,
+                                coverImage: 1
+                        }
+                }
+        ])
+        if (!channel.length) {
+                throw new ApiError(
+                        400, "Channel not available"
+                )
+        }
+        return res.status(200)
+                .json(new ApiResponse(
+                        200,
+                        channel[0],
+                        "User channel fetched successfully"
+                ))
 
 })
 
