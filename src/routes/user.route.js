@@ -39,13 +39,13 @@ userRouter.route("/current-user").get(verifyJWT, currentUser);
 // update account details
 userRouter.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 // avatar imager update
-userRouter.route("/avatar-update").path(verifyJWT, upload.single(
+userRouter.route("/avatar-update").patch(verifyJWT, upload.single(
         "avatar"
 ),
         avatarUpdate
 );
 // cover image update
-userRouter.route("/cover-image-update").path(verifyJWT, upload.single("coverImage"), coverUpdate);
+userRouter.route("/cover-image-update").patch(verifyJWT, upload.single("coverImage"), coverUpdate);
 // channel profile
 userRouter.route("/c/:userName").get(verifyJWT, getUserChannelProfile)
 

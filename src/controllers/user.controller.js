@@ -261,8 +261,9 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 // cover update request
 const coverUpdate = asyncHandler(async (req, res) => {
         const coverLocalPath = req.file?.path;
+        console.log(req.file?.path)
 
-        if (!coverLocalPathLocalPath) {
+        if (!coverLocalPath) {
                 throw new ApiError(400, "Cover image not found")
         }
         const cover = await uploadOnCloudinary(coverLocalPath);
