@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { avatarUpdate, coverUpdate, currentPasswordChange, currentUser, getUserChannelProfile, getWatchHistoryChannel, logOutUser, loginUser, refreshAccessToken, registerUser, updateAccountDetails } from "../controllers/user.controller.js";
+import { avatarUpdate, coverUpdate, currentPasswordChange, currentUser, getUserChannelProfile, getWatchHistoryChannel, logOutUser, loginUser, refreshAccessToken, registerUser, updateAccountDetails, videoUpload } from "../controllers/user.controller.js";
 import { upload } from "../minddlewares/multer.middleware.js";
 import { verifyJWT } from "../minddlewares/Auth.middleware.js";
 
@@ -51,4 +51,15 @@ userRouter.route("/c/:userName").get(verifyJWT, getUserChannelProfile)
 
 // user watch history
 userRouter.route("/watch-history").get(verifyJWT, getWatchHistoryChannel);
+// update video
+userRouter.route("/video-update").post(verifyJWT, upload.fields([
+        {
+                name: "videoFile",
+                maxCount: 1
+        },
+        {
+                name: "thumbnail",
+                maxCount: 1
+        }
+]), videoUpload)
 export default userRouter;

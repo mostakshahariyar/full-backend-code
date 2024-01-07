@@ -5,6 +5,7 @@ import { User } from "../models/user.models.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import { Video } from "../models/video.models.js";
 
 // token generator
 const generateAccessTokenAndRefreshToken = async (userId) => {
@@ -440,6 +441,63 @@ const getWatchHistoryChannel = asyncHandler(async (req, res) => {
                 )
 })
 
+// video upload
+const videoUpload = asyncHandler(async (req, res) => {
+        // console.log(req.files)
+        // const { videoFile, thumbnail } = req.files?.path;
+        const videoLocalPath = req.files?.videoFile[0].path;
+        const thumbnailLocalPath = req.files?.thumbnail[0].path;
+        const { title, description } = req.body;
+        if (!(videoLocalPath && thumbnailLocalPath)) {
+                throw new ApiError(
+                        400, "Video and thumbnail both are required"
+                )
+        }
+        if ([title, description].some((field) => field?.trim() === "")) {
+                throw new ApiError(
+                        400, "all fields are required"
+                )
+        }
+        console.log("video path", videoLocalPath);
+        console.log("thumbnail path", thumbnailLocalPath);
+        console.log("video uploading")
+        const videoPath = await uploadOnCloudinary(videoLocalPath);
+        const thumbnailPath = await uploadOnCloudinary(thumbnailLocalPath);
+        console.log("videoPathCloudinary", videoPath);
+        console.log("thumbnailPathCloudinary", thumbnailPath);
+        if (!videoPath) {
+                throw new ApiError(
+                        400,
+                        "Video's cloudinary path not found"
+                )
+        }
+        const user = await Video.create({
+                description,
+                title,
+                videoFile: videoPath?.url,
+                duration: videoPath?.duration,
+                thumbnail: thumbnailPath?.url
+        })
+        console.log("user", user)
+        // const uploadingVideo = await User.findById(user?._id).select("-password -refreshToken")
+        // console.log("uploadingVideo", uploadingVideo)
+        if (!user) {
+                throw new ApiError(
+                        400, "Something went to wrong with the upload on cloudinary"
+                )
+        }
+
+        return res.status(200)
+                .json(
+                        new ApiResponse(
+                                200,
+                                user,
+                                "video uploaded successfully"
+                        )
+                )
+
+})
+
 export {
         registerUser,
         loginUser,
@@ -451,5 +509,6 @@ export {
         avatarUpdate,
         coverUpdate,
         getWatchHistoryChannel,
-        getUserChannelProfile
+        getUserChannelProfile,
+        videoUpload
 };
